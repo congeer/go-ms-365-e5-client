@@ -28,24 +28,24 @@ type Token struct {
 	RefreshToken string
 }
 
-// OAuthClient use
-type OAuthClient struct {
+// Client use
+type Client struct {
 	clientConf *Config
 	conf       *oauth2.Config
 	mutex      *sync.Mutex
 }
 
 // NewClient create client
-func NewClient(conf Config) *OAuthClient {
-	client := OAuthClient{
+func NewClient(conf Config) *Client {
+	client := Client{
 		clientConf: &conf,
 		mutex:      new(sync.Mutex),
 	}
-	client.initOAuth2()
+	client.initClient()
 	return &client
 }
 
-func (c *OAuthClient) initOAuth2() {
+func (c *Client) initClient() {
 	c.mutex.Lock()
 	if c.conf == nil {
 		c.conf = &oauth2.Config{
@@ -60,13 +60,13 @@ func (c *OAuthClient) initOAuth2() {
 }
 
 // AuthCodeURL returns a URL to Microsoft login page
-func (c *OAuthClient) AuthCodeURL() string {
-	c.initOAuth2()
+func (c *Client) AuthCodeURL() string {
+	c.initClient()
 	return c.conf.AuthCodeURL(c.clientConf.State, oauth2.AccessTypeOffline)
 }
 
 // GetToken converts an authorization code into a token.
-func (c *OAuthClient) GetToken(code string, state string) (*Token, error) {
+func (c *Client) GetToken(code string, state string) (*Token, error) {
 	c.mutex.Lock()
 	if c.conf == nil {
 		c.mutex.Unlock()
@@ -99,7 +99,7 @@ func tokenTrans(sourceToken *oauth2.Token) *Token {
 	return token
 }
 
-func (c *OAuthClient) RefreshToken(token *Token) (*Token, error) {
+func (c *Client) RefreshToken(token *Token) (*Token, error) {
 	source := c.conf.TokenSource(context.Background(), &oauth2.Token{
 		AccessToken:  token.AccessToken,
 		TokenType:    token.TokenType,

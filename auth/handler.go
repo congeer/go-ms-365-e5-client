@@ -6,7 +6,7 @@ import (
 )
 
 // OAuthHandler handle auth path
-func OAuthHandler(cli *OAuthClient) func(w http.ResponseWriter, r *http.Request) {
+func OAuthHandler(cli *Client) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authUrl := cli.AuthCodeURL()
 		http.Redirect(w, r, authUrl, 302)
@@ -14,7 +14,7 @@ func OAuthHandler(cli *OAuthClient) func(w http.ResponseWriter, r *http.Request)
 }
 
 // CallbackHandler handle callback path
-func CallbackHandler(cli *OAuthClient, tokenHandle func(token *Token), errorHandle func(err error)) func(w http.ResponseWriter, r *http.Request) {
+func CallbackHandler(cli *Client, tokenHandle func(token *Token), errorHandle func(err error)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		queryParts, _ := url.ParseQuery(r.URL.RawQuery)
 		code := queryParts["code"][0]
