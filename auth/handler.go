@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 )
@@ -15,14 +14,16 @@ func OAuthHandler(cli *OAuthClient) func(w http.ResponseWriter, r *http.Request)
 }
 
 // CallbackHandler handle callback path
-func CallbackHandler(cli *OAuthClient) func(w http.ResponseWriter, r *http.Request) {
+func CallbackHandler(cli *OAuthClient, tokenHandle func(token *Token), errorHandle func(err error)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		queryParts, _ := url.ParseQuery(r.URL.RawQuery)
 		code := queryParts["code"][0]
 		state := queryParts["state"][0]
 		token, err := cli.GetToken(code, state)
-		fmt.Println(token, err)
-		refreshToken, err := cli.RefreshToken(token)
-		fmt.Println(refreshToken, err)
+		if err != nil {
+			errorHandle(err)
+		} else if tokenHandle != nil {
+			tokenHandle(token)
+		}
 	}
 }
