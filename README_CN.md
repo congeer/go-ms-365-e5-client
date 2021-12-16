@@ -28,15 +28,26 @@
 
 需要传入创建的客户端实例，返回请求的处理器
 
-在callback处理器中传入token的处理方法和错误的处理方法
+在callback处理器中传入token的处理方法用来处理token和错误，并且继续返回数据
 token需要自己处理保存
 
 ```go
+    func tokenHandler(w http.ResponseWriter, r *http.Request, token *auth.Token, err error) {
+        if err != nil {
+            io.WriteString(w, err.Error())
+            return
+        }
+        io.WriteString(w, "=====access token====\n")
+        io.WriteString(w, token.AccessToken)
+        io.WriteString(w, "\n=====refresh token====\n")
+        io.WriteString(w, token.RefreshToken)
+        io.WriteString(w, "\n=====access token refresh====\n")
+        newToken, _ := cli.RefreshToken(token)
+        io.WriteString(w, newToken.AccessToken)
+    }
+	
     http.HandleFunc("/auth", auth.OAuthHandler(cli))
-    http.HandleFunc("/auth/callback", auth.CallbackHandler(cli, func(token *auth.Token) {
-        // handle token
-        fmt.Println(token.AccessToken)
-    }, nil))
+    http.HandleFunc("/auth/callback", auth.CallbackHandler(cli, tokenHanlder))
     http.ListenAndServe(":10000", nil)
 ```
 
