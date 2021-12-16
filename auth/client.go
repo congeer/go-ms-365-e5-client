@@ -99,17 +99,15 @@ func tokenTrans(sourceToken *oauth2.Token) *Token {
 	return token
 }
 
-func (c *Client) RefreshToken(token *Token) (*Token, error) {
+func (c *Client) RefreshToken(refreshToken string) (*Token, error) {
 	source := c.conf.TokenSource(context.Background(), &oauth2.Token{
-		AccessToken:  token.AccessToken,
-		TokenType:    token.TokenType,
-		RefreshToken: token.RefreshToken,
+		RefreshToken: refreshToken,
 		Expiry:       time.Now(),
 	})
 	newToken, err := source.Token()
 	if err != nil {
 		return nil, err
 	}
-	token = tokenTrans(newToken)
+	token := tokenTrans(newToken)
 	return token, nil
 }

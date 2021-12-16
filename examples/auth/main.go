@@ -28,7 +28,7 @@ func tokenHandler(w http.ResponseWriter, r *http.Request, token *auth.Token, err
 	io.WriteString(w, "\n=====refresh token====\n")
 	io.WriteString(w, token.RefreshToken)
 	io.WriteString(w, "\n=====access token refresh====\n")
-	newToken, _ := cli.RefreshToken(token)
+	newToken, _ := cli.RefreshToken(token.RefreshToken)
 	io.WriteString(w, newToken.AccessToken)
 }
 
