@@ -14,16 +14,14 @@ func OAuthHandler(cli *Client) func(w http.ResponseWriter, r *http.Request) {
 }
 
 // CallbackHandler handle callback path
-func CallbackHandler(cli *Client, tokenHandle func(token *Token), errorHandle func(err error)) func(w http.ResponseWriter, r *http.Request) {
+func CallbackHandler(cli *Client, tokenHandle func(w http.ResponseWriter, r *http.Request, token *Token, err error)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		queryParts, _ := url.ParseQuery(r.URL.RawQuery)
 		code := queryParts["code"][0]
 		state := queryParts["state"][0]
 		token, err := cli.GetToken(code, state)
-		if err != nil {
-			errorHandle(err)
-		} else if tokenHandle != nil {
-			tokenHandle(token)
+		if tokenHandle != nil {
+			tokenHandle(w, r, token, err)
 		}
 	}
 }
