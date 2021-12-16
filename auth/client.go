@@ -20,12 +20,14 @@ type Config struct {
 }
 
 type Token struct {
-	TokenType    string
-	Scope        []string
-	ExpiresIn    float64
-	ExtExpiresIn float64
-	AccessToken  string
-	RefreshToken string
+	TokenType      string
+	Scope          []string
+	ExpiresIn      float64
+	ExpiresTime    time.Time
+	ExtExpiresIn   float64
+	ExtExpiresTime time.Time
+	AccessToken    string
+	RefreshToken   string
 }
 
 // Client use
@@ -93,7 +95,13 @@ func tokenTrans(sourceToken *oauth2.Token) *Token {
 	token.TokenType = sourceToken.Extra("token_type").(string)
 	token.Scope = strings.Split(sourceToken.Extra("scope").(string), " ")
 	token.ExpiresIn = sourceToken.Extra("expires_in").(float64)
+	if v := token.ExpiresIn; v != 0 {
+		token.ExpiresTime = time.Now().Add(time.Duration(v) * time.Second)
+	}
 	token.ExtExpiresIn = sourceToken.Extra("ext_expires_in").(float64)
+	if v := token.ExtExpiresIn; v != 0 {
+		token.ExtExpiresTime = time.Now().Add(time.Duration(v) * time.Second)
+	}
 	token.AccessToken = sourceToken.Extra("access_token").(string)
 	token.RefreshToken = sourceToken.Extra("refresh_token").(string)
 	return token
