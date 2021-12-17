@@ -18,9 +18,17 @@ var cli = auth.NewClient(auth.Config{
 	},
 })
 
+var Token *auth.Token
+
 func tokenHandler(w http.ResponseWriter, r *http.Request, token *auth.Token, err error) {
 	if err != nil {
 		io.WriteString(w, err.Error())
+		return
+	}
+	cookie, err := r.Cookie("redirectUrl")
+	if err == nil && cookie.Value != "" {
+		Token = token
+		http.Redirect(w, r, cookie.Value, 302)
 		return
 	}
 	io.WriteString(w, "=====access token====\n")
@@ -30,6 +38,7 @@ func tokenHandler(w http.ResponseWriter, r *http.Request, token *auth.Token, err
 	io.WriteString(w, "\n=====access token refresh====\n")
 	newToken, _ := cli.RefreshToken(token.RefreshToken)
 	io.WriteString(w, newToken.AccessToken)
+	Token = newToken
 }
 
 func main() {
