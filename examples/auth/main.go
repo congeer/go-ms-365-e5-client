@@ -26,17 +26,20 @@ func tokenHandler(w http.ResponseWriter, r *http.Request, token *auth.Token, err
 		return
 	}
 	cookie, err := r.Cookie("redirectUrl")
-	if err == nil && cookie.Value != "" {
-		Token = token
-		http.Redirect(w, r, cookie.Value, 302)
-		return
+	if err == nil {
+		redirectUrl := cookie.Value
+		if redirectUrl != "" {
+			Token = token
+			http.Redirect(w, r, redirectUrl, 302)
+			return
+		}
 	}
 	io.WriteString(w, "=====access token====\n")
 	io.WriteString(w, token.AccessToken)
 	io.WriteString(w, "\n=====refresh token====\n")
 	io.WriteString(w, token.RefreshToken)
 	io.WriteString(w, "\n=====access token refresh====\n")
-	newToken, _ := cli.RefreshToken(token.RefreshToken)
+	newToken, _ := cli.GetTokenByRefreshToken(token.RefreshToken)
 	io.WriteString(w, newToken.AccessToken)
 	Token = newToken
 }

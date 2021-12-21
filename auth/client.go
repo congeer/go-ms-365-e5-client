@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/microsoft"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -17,17 +18,6 @@ type Config struct {
 	Scope        []string
 	State        string
 	Tenant       string
-}
-
-type Token struct {
-	TokenType      string
-	Scope          []string
-	ExpiresIn      float64
-	ExpiresTime    time.Time
-	ExtExpiresIn   float64
-	ExtExpiresTime time.Time
-	AccessToken    string
-	RefreshToken   string
 }
 
 // Client use
@@ -85,37 +75,46 @@ func (c *Client) GetToken(code string, state string) (*Token, error) {
 	}
 
 	token := tokenTrans(sourceToken)
+	token.cli = c
 
 	c.mutex.Unlock()
 	return token, nil
 }
 
 func tokenTrans(sourceToken *oauth2.Token) *Token {
-	token := &Token{}
-	token.TokenType = sourceToken.Extra("token_type").(string)
+	token := &Token{
+		ctx: context.Background(),
+	}
 	token.Scope = strings.Split(sourceToken.Extra("scope").(string), " ")
 	token.ExpiresIn = sourceToken.Extra("expires_in").(float64)
-	if v := token.ExpiresIn; v != 0 {
-		token.ExpiresTime = time.Now().Add(time.Duration(v) * time.Second)
-	}
 	token.ExtExpiresIn = sourceToken.Extra("ext_expires_in").(float64)
 	if v := token.ExtExpiresIn; v != 0 {
-		token.ExtExpiresTime = time.Now().Add(time.Duration(v) * time.Second)
+		token.ExtExpiry = time.Now().Add(time.Duration(v) * time.Second)
 	}
-	token.AccessToken = sourceToken.Extra("access_token").(string)
-	token.RefreshToken = sourceToken.Extra("refresh_token").(string)
+	token.Token = sourceToken
 	return token
 }
 
-func (c *Client) RefreshToken(refreshToken string) (*Token, error) {
+func (c *Client) GetTokenByRefreshToken(refreshToken string) (*Token, error) {
+	c.mutex.Lock()
+
 	source := c.conf.TokenSource(context.Background(), &oauth2.Token{
 		RefreshToken: refreshToken,
 		Expiry:       time.Now(),
 	})
 	newToken, err := source.Token()
+
 	if err != nil {
 		return nil, err
 	}
+
 	token := tokenTrans(newToken)
+	token.cli = c
+
+	c.mutex.Unlock()
 	return token, nil
+}
+
+func (c *Client) HttpClient(ctx context.Context, token Token) *http.Client {
+	return c.conf.Client(ctx, token.Token)
 }
