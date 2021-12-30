@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"go-ms-365-e5-sdk/auth"
@@ -36,6 +37,18 @@ func (r *Request) Get() (*http.Response, error) {
 	url := strings.Join(r.path, "/")
 	fmt.Println(url)
 	resp, err := client.Get(url)
+	return resp, err
+}
+
+func (r *Request) PostJson(req interface{}) (*http.Response, error) {
+	client := r.token.HttpClient()
+	url := strings.Join(r.path, "/")
+	fmt.Println(url)
+	marshal, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Post(url, "application/json", bytes.NewBuffer(marshal))
 	return resp, err
 }
 

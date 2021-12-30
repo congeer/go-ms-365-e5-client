@@ -1,6 +1,6 @@
-package user
+package response
 
-type Info struct {
+type UserInfo struct {
 	BusinessPhones    []string    `json:"businessPhones"`
 	DisplayName       string      `json:"displayName"`
 	GivenName         string      `json:"givenName"`

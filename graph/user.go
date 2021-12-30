@@ -2,8 +2,7 @@ package graph
 
 import (
 	"encoding/json"
-	"go-ms-365-e5-sdk/graph/response/drive"
-	"go-ms-365-e5-sdk/graph/response/user"
+	"go-ms-365-e5-sdk/graph/response"
 	"io/ioutil"
 )
 
@@ -18,7 +17,7 @@ func (r *UserRequest) DriveDefault() *DriveRequest {
 	}
 }
 
-func (r *UserRequest) Info() (*user.Info, error) {
+func (r *UserRequest) Info() (*response.UserInfo, error) {
 	get, err := r.req.Get()
 	if err != nil {
 		return nil, err
@@ -30,7 +29,7 @@ func (r *UserRequest) Info() (*user.Info, error) {
 	if get.StatusCode != 200 {
 		return nil, handlerError(body, get.StatusCode)
 	}
-	resp := user.Info{}
+	resp := response.UserInfo{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
 		return nil, err
@@ -38,7 +37,7 @@ func (r *UserRequest) Info() (*user.Info, error) {
 	return &resp, nil
 }
 
-func (r UserRequest) DriveList() ([]drive.Drive, error) {
+func (r UserRequest) DriveList() ([]response.Drive, error) {
 	r.req.AppendPath("drives")
 	get, err := r.req.Get()
 	if err != nil {
@@ -51,7 +50,7 @@ func (r UserRequest) DriveList() ([]drive.Drive, error) {
 	if get.StatusCode != 200 {
 		return nil, handlerError(body, get.StatusCode)
 	}
-	resp := drive.DriveListResponse{}
+	resp := response.DriveListResponse{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
 		return nil, err
