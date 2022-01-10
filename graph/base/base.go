@@ -1,4 +1,4 @@
-package response
+package base
 
 type ErrorResponse struct {
 	Status    int `json:"status"`
@@ -32,4 +32,11 @@ type IdentitySet struct {
 type User struct {
 	Identity
 	Email string `json:"email,omitempty"`
+}
+
+type ParentReference struct {
+	DriveId   string `json:"driveId,omitempty"`
+	DriveType string `json:"driveType,omitempty"`
+	Id        string `json:"id,omitempty"`
+	Path      string `json:"path,omitempty"`
 }

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go-ms-365-e5-sdk/auth"
-	"go-ms-365-e5-sdk/graph/response"
+	"go-ms-365-e5-sdk/graph/base"
 	"net/http"
 	"strings"
 )
@@ -52,6 +52,53 @@ func (r *Request) PostJson(req interface{}) (*http.Response, error) {
 	return resp, err
 }
 
+func (r *Request) Patch(req interface{}) (*http.Response, error) {
+	client := r.token.HttpClient()
+	url := strings.Join(r.path, "/")
+	fmt.Println(url)
+	marshal, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+	request, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(marshal))
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(request)
+	return resp, err
+}
+
+func (r *Request) Put(req interface{}) (*http.Response, error) {
+	client := r.token.HttpClient()
+	url := strings.Join(r.path, "/")
+	fmt.Println(url)
+	marshal, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+	request, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(marshal))
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(request)
+	return resp, err
+}
+
+func (r *Request) Delete() (*http.Response, error) {
+	client := r.token.HttpClient()
+	url := strings.Join(r.path, "/")
+	fmt.Println(url)
+	request, err := http.NewRequest(http.MethodDelete, url, bytes.NewBufferString(""))
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(request)
+	return resp, err
+}
+
 func (r *Request) Users(userId string) *UserRequest {
 	r.AppendPath("users")
 	r.AppendPath(userId)
@@ -70,7 +117,7 @@ func (r *Request) DriveById(id string) *DriveRequest {
 }
 
 func handlerError(body []byte, status int) error {
-	errResp := response.ErrorResponse{}
+	errResp := base.ErrorResponse{}
 	err := json.Unmarshal(body, &errResp)
 	if err != nil {
 		return err

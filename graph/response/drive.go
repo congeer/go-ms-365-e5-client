@@ -1,6 +1,7 @@
 package response
 
 import (
+	"go-ms-365-e5-sdk/graph/base"
 	"time"
 )
 
@@ -18,10 +19,10 @@ type Drive struct {
 	CreatedDateTime      time.Time `json:"createdDateTime"`
 	LastModifiedDateTime time.Time `json:"lastModifiedDateTime"`
 
-	CreatedBy      *IdentitySet `json:"createdBy,omitempty"`
-	LastModifiedBy *IdentitySet `json:"lastModifiedBy,omitempty"`
+	CreatedBy      *base.IdentitySet `json:"createdBy,omitempty"`
+	LastModifiedBy *base.IdentitySet `json:"lastModifiedBy,omitempty"`
 
-	Owner *IdentitySet `json:"owner,omitempty"`
+	Owner *base.IdentitySet `json:"owner,omitempty"`
 
 	Quota struct {
 		Deleted   int64  `json:"deleted"`
@@ -44,17 +45,13 @@ type DriveItem struct {
 	Name   string `json:"name"`
 	Size   int64  `json:"size"`
 
-	CreatedBy            *IdentitySet `json:"createdBy,omitempty"`
-	LastModifiedBy       *IdentitySet `json:"lastModifiedBy,omitempty"`
-	CreatedDateTime      time.Time    `json:"createdDateTime"`
-	LastModifiedDateTime time.Time    `json:"lastModifiedDateTime"`
+	CreatedBy            *base.IdentitySet `json:"createdBy,omitempty"`
+	LastModifiedBy       *base.IdentitySet `json:"lastModifiedBy,omitempty"`
+	CreatedDateTime      time.Time         `json:"createdDateTime"`
+	LastModifiedDateTime time.Time         `json:"lastModifiedDateTime"`
 
-	ParentReference struct {
-		DriveId   string `json:"driveId"`
-		DriveType string `json:"driveType"`
-		Id        string `json:"id,omitempty"`
-		Path      string `json:"path,omitempty"`
-	} `json:"parentReference"`
+	ParentReference base.ParentReference `json:"parentReference"`
+
 	FileSystemInfo struct {
 		CreatedDateTime      time.Time `json:"createdDateTime"`
 		LastModifiedDateTime time.Time `json:"lastModifiedDateTime"`
@@ -76,5 +73,5 @@ type DriveItem struct {
 	Root *struct {
 	} `json:"root,omitempty"`
 
-	MicrosoftGraphDownloadUrl string `json:"@microsoft.graph.downloadUrl,omitempty"`
+	GraphDownloadUrl string `json:"@microsoft.graph.downloadUrl,omitempty"`
 }

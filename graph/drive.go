@@ -3,7 +3,7 @@ package graph
 import (
 	"encoding/json"
 	"go-ms-365-e5-sdk/graph/request"
-	response2 "go-ms-365-e5-sdk/graph/response"
+	"go-ms-365-e5-sdk/graph/response"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -14,7 +14,7 @@ type DriveRequest struct {
 	req *Request
 }
 
-func (r *DriveRequest) Info() (*response2.Drive, error) {
+func (r *DriveRequest) Info() (*response.Drive, error) {
 	get, err := r.req.Get()
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (r *DriveRequest) Info() (*response2.Drive, error) {
 	if get.StatusCode != 200 {
 		return nil, handlerError(body, get.StatusCode)
 	}
-	resp := response2.Drive{}
+	resp := response.Drive{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (r *DriveRequest) ItemByPath(path string) *DriveItemRequest {
 	return &DriveItemRequest{req: r.req}
 }
 
-func (r *DriveRequest) Delta() ([]response2.DriveItem, error) {
+func (r *DriveRequest) Delta() ([]response.DriveItem, error) {
 	r.req.AppendPath("root")
 	r.req.AppendPath("delta")
 	get, err := r.req.Get()
@@ -72,7 +72,7 @@ func (r *DriveRequest) Delta() ([]response2.DriveItem, error) {
 	if get.StatusCode != 200 {
 		return nil, handlerError(body, get.StatusCode)
 	}
-	resp := response2.DriveItemListResponse{}
+	resp := response.DriveItemListResponse{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (r *DriveRequest) Delta() ([]response2.DriveItem, error) {
 	return resp.Value, nil
 }
 
-func (r *DriveRequest) SharedWithMe() ([]response2.DriveItem, error) {
+func (r *DriveRequest) SharedWithMe() ([]response.DriveItem, error) {
 	r.req.AppendPath("sharedWithMe")
 	get, err := r.req.Get()
 	if err != nil {
@@ -93,7 +93,7 @@ func (r *DriveRequest) SharedWithMe() ([]response2.DriveItem, error) {
 	if get.StatusCode != 200 {
 		return nil, handlerError(body, get.StatusCode)
 	}
-	resp := response2.DriveItemListResponse{}
+	resp := response.DriveItemListResponse{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ type DriveItemRequest struct {
 	req *Request
 }
 
-func (r *DriveItemRequest) Info() (*response2.DriveItem, error) {
+func (r *DriveItemRequest) Info() (*response.DriveItem, error) {
 	get, err := r.req.Get()
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (r *DriveItemRequest) Info() (*response2.DriveItem, error) {
 	if get.StatusCode != 200 {
 		return nil, handlerError(body, get.StatusCode)
 	}
-	resp := response2.DriveItem{}
+	resp := response.DriveItem{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (r *DriveItemRequest) Info() (*response2.DriveItem, error) {
 	return &resp, nil
 }
 
-func (r *DriveItemRequest) Children() ([]response2.DriveItem, error) {
+func (r *DriveItemRequest) Children() ([]response.DriveItem, error) {
 	r.req.AppendPath("children")
 	get, err := r.req.Get()
 	if err != nil {
@@ -138,7 +138,7 @@ func (r *DriveItemRequest) Children() ([]response2.DriveItem, error) {
 	if get.StatusCode != 200 {
 		return nil, handlerError(body, get.StatusCode)
 	}
-	resp := response2.DriveItemListResponse{}
+	resp := response.DriveItemListResponse{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
 		return nil, err
@@ -182,8 +182,8 @@ func (r *DriveItemRequest) ContentReader() (io.ReadCloser, string, error) {
 	return get.Body, params["filename"], nil
 }
 
-func (r *DriveItemRequest) CreateFolder(name string) (*response2.DriveItem, error) {
-	get, err := r.req.PostJson(request.NewCreateFolderRequest(name))
+func (r *DriveItemRequest) CreateFolder(name string) (*response.DriveItem, error) {
+	get, err := r.req.PostJson(request.NewDefaultCreateFolderRequest(name))
 	if err != nil {
 		return nil, err
 	}
@@ -194,10 +194,45 @@ func (r *DriveItemRequest) CreateFolder(name string) (*response2.DriveItem, erro
 	if get.StatusCode != 200 {
 		return nil, handlerError(body, get.StatusCode)
 	}
-	resp := response2.DriveItem{}
+	resp := response.DriveItem{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
 		return nil, err
 	}
 	return &resp, nil
+}
+
+func (r *DriveItemRequest) MoveTo(pathId string, rename string) (*response.DriveItem, error) {
+	get, err := r.req.Patch(request.NewDriveItemMoveRequest(pathId, rename))
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(get.Body)
+	if err != nil {
+		return nil, err
+	}
+	if get.StatusCode != 200 {
+		return nil, handlerError(body, get.StatusCode)
+	}
+	resp := response.DriveItem{}
+	err = json.Unmarshal(body, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (r *DriveItemRequest) Delete() error {
+	get, err := r.req.Delete()
+	if err != nil {
+		return err
+	}
+	if get.StatusCode != 204 && get.StatusCode != 200 {
+		body, err := ioutil.ReadAll(get.Body)
+		if err != nil {
+			return err
+		}
+		return handlerError(body, get.StatusCode)
+	}
+	return nil
 }
