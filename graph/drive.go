@@ -105,6 +105,7 @@ type DriveItemRequest struct {
 	req *Request
 }
 
+// Info  Get item
 func (r *DriveItemRequest) Info() (*response.DriveItem, error) {
 	get, err := r.req.Get()
 	if err != nil {
@@ -125,6 +126,7 @@ func (r *DriveItemRequest) Info() (*response.DriveItem, error) {
 	return &resp, nil
 }
 
+// Children List children
 func (r *DriveItemRequest) Children() ([]response.DriveItem, error) {
 	r.req.AppendPath("children")
 	get, err := r.req.Get()
@@ -146,6 +148,49 @@ func (r *DriveItemRequest) Children() ([]response.DriveItem, error) {
 	return resp.Value, nil
 }
 
+// Move Rename or move file
+func (r *DriveItemRequest) Move(pathId string, rename string) (*response.DriveItem, error) {
+	get, err := r.req.Patch(request.NewDriveItemUpdateRequest(pathId, rename))
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(get.Body)
+	if err != nil {
+		return nil, err
+	}
+	if get.StatusCode != 200 {
+		return nil, handlerError(body, get.StatusCode)
+	}
+	resp := response.DriveItem{}
+	err = json.Unmarshal(body, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// Rename Only rename file
+func (r *DriveItemRequest) Rename(rename string) (*response.DriveItem, error) {
+	get, err := r.req.Patch(request.NewDriveItemUpdateRequest("", rename))
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(get.Body)
+	if err != nil {
+		return nil, err
+	}
+	if get.StatusCode != 200 {
+		return nil, handlerError(body, get.StatusCode)
+	}
+	resp := response.DriveItem{}
+	err = json.Unmarshal(body, &resp)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// Content Download
 func (r *DriveItemRequest) Content() ([]byte, string, error) {
 	r.req.AppendPath("content")
 	get, err := r.req.Get()
@@ -182,6 +227,7 @@ func (r *DriveItemRequest) ContentReader() (io.ReadCloser, string, error) {
 	return get.Body, params["filename"], nil
 }
 
+// CreateFolder Create folder
 func (r *DriveItemRequest) CreateFolder(name string) (*response.DriveItem, error) {
 	get, err := r.req.PostJson(request.NewDefaultCreateFolderRequest(name))
 	if err != nil {
@@ -202,26 +248,7 @@ func (r *DriveItemRequest) CreateFolder(name string) (*response.DriveItem, error
 	return &resp, nil
 }
 
-func (r *DriveItemRequest) MoveTo(pathId string, rename string) (*response.DriveItem, error) {
-	get, err := r.req.Patch(request.NewDriveItemMoveRequest(pathId, rename))
-	if err != nil {
-		return nil, err
-	}
-	body, err := ioutil.ReadAll(get.Body)
-	if err != nil {
-		return nil, err
-	}
-	if get.StatusCode != 200 {
-		return nil, handlerError(body, get.StatusCode)
-	}
-	resp := response.DriveItem{}
-	err = json.Unmarshal(body, &resp)
-	if err != nil {
-		return nil, err
-	}
-	return &resp, nil
-}
-
+// Delete Delete file
 func (r *DriveItemRequest) Delete() error {
 	get, err := r.req.Delete()
 	if err != nil {

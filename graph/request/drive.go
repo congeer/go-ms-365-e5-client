@@ -16,13 +16,13 @@ func NewDefaultCreateFolderRequest(name string) CreateFolderRequest {
 	}
 }
 
-type DriveItemMoveRequest struct {
+type DriveItemUpdateRequest struct {
 	ParentReference base.ParentReference `json:"parentReference"`
 	Name            string               `json:"name,omitempty"`
 }
 
-func NewDriveItemMoveRequest(pathId, rename string) DriveItemMoveRequest {
-	return DriveItemMoveRequest{
+func NewDriveItemUpdateRequest(pathId, rename string) DriveItemUpdateRequest {
+	return DriveItemUpdateRequest{
 		ParentReference: base.ParentReference{
 			Id: pathId,
 		},
