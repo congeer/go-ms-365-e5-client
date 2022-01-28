@@ -210,9 +210,9 @@ func (r *DriveItemRequest) Content() ([]byte, string, error) {
 }
 
 // Upload Upload File
-func (r *DriveItemRequest) Upload(reader io.Reader, contentType string) (*response.DriveItem, error) {
+func (r *DriveItemRequest) Upload(reader io.Reader) (*response.DriveItem, error) {
 	r.req.AppendPath("content")
-	resp, err := r.req.Put(reader, contentType)
+	resp, err := r.req.Put(reader, "application/octet-stream")
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func (r *DriveItemRequest) Upload(reader io.Reader, contentType string) (*respon
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != 201 && resp.StatusCode != 200 {
 		return nil, handlerError(body, resp.StatusCode)
 	}
 	item := response.DriveItem{}
