@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go-ms-365-e5-sdk/auth"
 	"go-ms-365-e5-sdk/graph/base"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -52,7 +53,7 @@ func (r *Request) PostJson(req interface{}) (*http.Response, error) {
 	return resp, err
 }
 
-func (r *Request) Patch(req interface{}) (*http.Response, error) {
+func (r *Request) PatchJson(req interface{}) (*http.Response, error) {
 	client := r.token.HttpClient()
 	url := strings.Join(r.path, "/")
 	fmt.Println(url)
@@ -69,7 +70,7 @@ func (r *Request) Patch(req interface{}) (*http.Response, error) {
 	return resp, err
 }
 
-func (r *Request) Put(req interface{}) (*http.Response, error) {
+func (r *Request) PutJson(req interface{}) (*http.Response, error) {
 	client := r.token.HttpClient()
 	url := strings.Join(r.path, "/")
 	fmt.Println(url)
@@ -82,6 +83,19 @@ func (r *Request) Put(req interface{}) (*http.Response, error) {
 		return nil, err
 	}
 	request.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(request)
+	return resp, err
+}
+
+func (r *Request) Put(reader io.Reader, contentType string) (*http.Response, error) {
+	client := r.token.HttpClient()
+	url := strings.Join(r.path, "/")
+	fmt.Println(url)
+	request, err := http.NewRequest(http.MethodPut, url, reader)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", contentType)
 	resp, err := client.Do(request)
 	return resp, err
 }
