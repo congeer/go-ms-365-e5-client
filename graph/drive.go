@@ -184,8 +184,44 @@ func (r *DriveItemRequest) Rename(rename string) (*response.DriveItem, error) {
 	return &item, nil
 }
 
-// Copy File
-func (r *DriveItemRequest) Copy(driveId, pathId, name string) (string, error) {
+// Copy File In Path
+func (r *DriveItemRequest) Copy(name string) (string, error) {
+	req := r.req.AppendPath("copy")
+	resp, err := req.PostJson(request.NewDriveItemCopyRequest("", "", name))
+	if err != nil {
+		return "", err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 202 {
+		return "", handlerError(body, resp.StatusCode)
+	}
+	location := resp.Header.Get("Location")
+	return location, nil
+}
+
+// CopyToOtherPath Copy File To Other Path
+func (r *DriveItemRequest) CopyToOtherPath(name, pathId string) (string, error) {
+	req := r.req.AppendPath("copy")
+	resp, err := req.PostJson(request.NewDriveItemCopyRequest("", pathId, name))
+	if err != nil {
+		return "", err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 202 {
+		return "", handlerError(body, resp.StatusCode)
+	}
+	location := resp.Header.Get("Location")
+	return location, nil
+}
+
+// CopyOtherDrive Copy File To Other Drive
+func (r *DriveItemRequest) CopyOtherDrive(name, pathId, driveId string) (string, error) {
 	req := r.req.AppendPath("copy")
 	resp, err := req.PostJson(request.NewDriveItemCopyRequest(driveId, pathId, name))
 	if err != nil {
