@@ -29,3 +29,13 @@ func NewDriveItemUpdateRequest(pathId, rename string) DriveItemUpdateRequest {
 		Name: rename,
 	}
 }
+
+func NewDriveItemCopyRequest(driveId, pathId, name string) DriveItemUpdateRequest {
+	return DriveItemUpdateRequest{
+		ParentReference: base.ParentReference{
+			DriveId: driveId,
+			Id:      pathId,
+		},
+		Name: name,
+	}
+}

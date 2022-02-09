@@ -11,10 +11,7 @@ type UserRequest struct {
 }
 
 func (r *UserRequest) DriveDefault() *DriveRequest {
-	r.req.AppendPath("drive")
-	return &DriveRequest{
-		req: r.req,
-	}
+	return &DriveRequest{req: r.req.AppendPath("drive")}
 }
 
 func (r *UserRequest) Info() (*response.UserInfo, error) {
@@ -38,8 +35,8 @@ func (r *UserRequest) Info() (*response.UserInfo, error) {
 }
 
 func (r UserRequest) DriveList() ([]response.Drive, error) {
-	r.req.AppendPath("drives")
-	get, err := r.req.Get()
+	req := r.req.AppendPath("drives")
+	get, err := req.Get()
 	if err != nil {
 		return nil, err
 	}

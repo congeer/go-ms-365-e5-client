@@ -35,33 +35,27 @@ func (r *DriveRequest) Info() (*response.Drive, error) {
 }
 
 func (r *DriveRequest) Root() *DriveItemRequest {
-	r.req.AppendPath("root")
-	return &DriveItemRequest{req: r.req}
+	return &DriveItemRequest{req: r.req.AppendPath("root")}
 }
 
 func (r *DriveRequest) ItemById(id string) *DriveItemRequest {
-	r.req.AppendPath("items")
-	r.req.AppendPath(id)
-	return &DriveItemRequest{req: r.req}
+	return &DriveItemRequest{req: r.req.AppendPath("items").AppendPath(id)}
 }
 
 func (r *DriveRequest) ItemByPath(path string) *DriveItemRequest {
-	r.req.AppendPath("items")
-	r.req.AppendPath("root:")
+	req := r.req.AppendPath("items").AppendPath("root:")
 	if strings.HasPrefix(path, "/") {
 		path = path[1:]
 	}
 	if strings.HasSuffix(path, "/") {
 		path = path[:len(path)-1]
 	}
-	r.req.AppendPath(path + ":")
-	return &DriveItemRequest{req: r.req}
+	return &DriveItemRequest{req: req.AppendPath(path + ":")}
 }
 
 func (r *DriveRequest) Delta() ([]response.DriveItem, error) {
-	r.req.AppendPath("root")
-	r.req.AppendPath("delta")
-	resp, err := r.req.Get()
+	req := r.req.AppendPath("root").AppendPath("delta")
+	resp, err := req.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -81,8 +75,8 @@ func (r *DriveRequest) Delta() ([]response.DriveItem, error) {
 }
 
 func (r *DriveRequest) SharedWithMe() ([]response.DriveItem, error) {
-	r.req.AppendPath("sharedWithMe")
-	resp, err := r.req.Get()
+	req := r.req.AppendPath("sharedWithMe")
+	resp, err := req.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -128,8 +122,8 @@ func (r *DriveItemRequest) Info() (*response.DriveItem, error) {
 
 // Children List children
 func (r *DriveItemRequest) Children() ([]response.DriveItem, error) {
-	r.req.AppendPath("children")
-	resp, err := r.req.Get()
+	req := r.req.AppendPath("children")
+	resp, err := req.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -190,10 +184,28 @@ func (r *DriveItemRequest) Rename(rename string) (*response.DriveItem, error) {
 	return &item, nil
 }
 
+// Copy File
+func (r *DriveItemRequest) Copy(driveId, pathId, name string) (string, error) {
+	req := r.req.AppendPath("copy")
+	resp, err := req.PostJson(request.NewDriveItemCopyRequest(driveId, pathId, name))
+	if err != nil {
+		return "", err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 202 {
+		return "", handlerError(body, resp.StatusCode)
+	}
+	location := resp.Header.Get("Location")
+	return location, nil
+}
+
 // Content Download
 func (r *DriveItemRequest) Content() ([]byte, string, error) {
-	r.req.AppendPath("content")
-	resp, err := r.req.Get()
+	req := r.req.AppendPath("content")
+	resp, err := req.Get()
 	if err != nil {
 		return nil, "", err
 	}
@@ -211,8 +223,8 @@ func (r *DriveItemRequest) Content() ([]byte, string, error) {
 
 // Upload Upload File
 func (r *DriveItemRequest) Upload(reader io.Reader) (*response.DriveItem, error) {
-	r.req.AppendPath("content")
-	resp, err := r.req.Put(reader, "application/octet-stream")
+	req := r.req.AppendPath("content")
+	resp, err := req.Put(reader, "application/octet-stream")
 	if err != nil {
 		return nil, err
 	}
@@ -232,8 +244,8 @@ func (r *DriveItemRequest) Upload(reader io.Reader) (*response.DriveItem, error)
 }
 
 func (r *DriveItemRequest) ContentReader() (io.ReadCloser, string, error) {
-	r.req.AppendPath("content")
-	resp, err := r.req.Get()
+	req := r.req.AppendPath("content")
+	resp, err := req.Get()
 	if err != nil {
 		return nil, "", err
 	}

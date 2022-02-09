@@ -29,8 +29,9 @@ func (r *Request) client() *http.Client {
 	return r.token.HttpClient()
 }
 
-func (r *Request) AppendPath(path string) {
+func (r Request) AppendPath(path string) *Request {
 	r.path = append(r.path, path)
+	return &r
 }
 
 func (r *Request) Get() (*http.Response, error) {
@@ -114,20 +115,15 @@ func (r *Request) Delete() (*http.Response, error) {
 }
 
 func (r *Request) Users(userId string) *UserRequest {
-	r.AppendPath("users")
-	r.AppendPath(userId)
-	return &UserRequest{r}
+	return &UserRequest{r.AppendPath("users").AppendPath(userId)}
 }
 
 func (r *Request) Me() *UserRequest {
-	r.AppendPath("me")
-	return &UserRequest{r}
+	return &UserRequest{r.AppendPath("me")}
 }
 
 func (r *Request) DriveById(id string) *DriveRequest {
-	r.AppendPath("drives")
-	r.AppendPath(id)
-	return &DriveRequest{req: r}
+	return &DriveRequest{req: r.AppendPath("drives").AppendPath(id)}
 }
 
 func handlerError(body []byte, status int) error {
